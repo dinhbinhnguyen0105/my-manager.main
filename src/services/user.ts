@@ -1,38 +1,202 @@
-import { ipcMain } from "electron";
 import path from "path";
 import fs from "fs";
-import { APIsInterface } from "@/types";
+import { IPCUserInterface } from "~/types/ipcs";
+import { UserInterface } from "~/types/user";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "user.json");
-const listUser = (): Promise<APIsInterface> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const rawDB = fs.readFileSync(dbPath, { encoding: "utf8" });
 
-        } catch (error) {
-            reject({
-                data: null,
-                message: `ERROR [listUser]: ${(error as string).toString()}`,
-                status: 500,
-            });
-        };
+const initializeDB = (): void => {
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify([]), { encoding: "utf8" });
+    }
+};
+
+const readDB = (): UserInterface[] => {
+    const rawDB = fs.readFileSync(dbPath, { encoding: "utf8" });
+    return JSON.parse(rawDB);
+};
+
+const writeDB = (db: UserInterface[]): void => {
+    fs.writeFileSync(dbPath, JSON.stringify(db), { encoding: "utf8" });
+};
+
+const handleError = (error: unknown, reject: (reason?: any) => void, context: string): void => {
+    reject({
+        data: null,
+        message: `ERROR [${context}]: ${(error as Error).message}`,
+        status: 500,
     });
 };
-// const handleListUser = () => {
-//     return new Promise((resolve, reject) => {
-//         try {
-//             const rawDB = fs.readFileSync(userDBPath, { encoding: "utf8" });
-//             const db = JSON.parse(rawDB);
-//             resolve({
-//                 data: db,
-//                 message: "Successfully retrieved data from the database [users]",
-//                 statusCode: 200,
-//             });
-//         } catch (err) {
-//             reject({
-//                 statusCode: 500,
-//                 message: err.toString(),
-//             });
-//         };
-//     });
-// };
+
+const list = (): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            resolve({
+                data: db,
+                status: 200,
+                message: "Successfully retrieved data from the database [users]",
+            });
+        } catch (error) {
+            handleError(error, reject, "list");
+        }
+    });
+};
+
+const get = ({ id }: { id: string }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            const user = db.find((user: UserInterface) => user.info.id === id);
+            if (user) {
+                resolve({
+                    data: [user],
+                    status: 200,
+                    message: "Successfully retrieved user",
+                });
+            } else {
+                resolve({
+                    data: null,
+                    status: 404,
+                    message: "User not found",
+                });
+            }
+        } catch (error) {
+            handleError(error, reject, "get");
+        }
+    });
+};
+
+const create = ({ user }: { user: UserInterface }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            db.push(user);
+            writeDB(db);
+            resolve({
+                data: null,
+                status: 201,
+                message: "Successfully created user",
+            });
+        } catch (error) {
+            handleError(error, reject, "create");
+        }
+    });
+};
+
+const update = ({ user }: { user: UserInterface }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            const index = db.findIndex((u: UserInterface) => u.info.id === user.info.id);
+            if (index !== -1) {
+                db[index] = user;
+                writeDB(db);
+                resolve({
+                    data: null,
+                    status: 200,
+                    message: "Successfully updated user",
+                });
+            } else {
+                resolve({
+                    data: null,
+                    status: 404,
+                    message: "User not found",
+                });
+            }
+        } catch (error) {
+            handleError(error, reject, "update");
+        }
+    });
+};
+
+const del = ({ id }: { id: string }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            const newDB = db.filter((user: UserInterface) => user.info.id !== id);
+            if (newDB.length === db.length) {
+                resolve({
+                    data: null,
+                    status: 404,
+                    message: "User not found",
+                });
+                return;
+            }
+            writeDB(newDB);
+            resolve({
+                data: null,
+                status: 200,
+                message: "Successfully deleted user",
+            });
+        } catch (error) {
+            handleError(error, reject, "del");
+        }
+    });
+};
+
+const select = ({ id, isSelected }: { id: string, isSelected: boolean }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            const index = db.findIndex((u: UserInterface) => u.info.id === id);
+            if (index !== -1) {
+                db[index].actions.isSelected = isSelected;
+                writeDB(db);
+                resolve({
+                    data: null,
+                    status: 200,
+                    message: "Successfully updated users",
+                });
+            } else {
+                resolve({
+                    data: null,
+                    status: 404,
+                    message: "User not found",
+                });
+            }
+        } catch (error) {
+            handleError(error, reject, "select");
+        }
+    });
+};
+
+const selectAll = ({ isSelected }: { isSelected: boolean }): Promise<IPCUserInterface> => {
+    return new Promise((resolve, reject) => {
+        try {
+            initializeDB();
+            const db = readDB();
+            const newDB = db.map(user => ({
+                ...user,
+                actions: {
+                    ...user.actions,
+                    isSelected: isSelected,
+                }
+            }));
+            writeDB(newDB);
+            resolve({
+                data: null,
+                status: 200,
+                message: "Successfully updated user",
+            });
+        } catch (error) {
+            handleError(error, reject, "selectAll");
+        }
+    });
+};
+
+export {
+    list,
+    get,
+    create,
+    update,
+    del,
+    select,
+    selectAll,
+};

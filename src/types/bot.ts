@@ -1,9 +1,3 @@
-export interface APIsInterface {
-    data: [] | null,
-    status: number,
-    message: string,
-}
-
 export type ReactionsType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
 export type NewsFeedType = {
     isSelected: boolean,
@@ -88,7 +82,7 @@ export type SearchType = {
     isSelected: boolean,
 };
 
-export interface LikeAndCommentInterface {
+export interface LikeCommentInterface {
     isSelected: boolean,
     newsFeed: NewsFeedType,
     watch: WatchType,
@@ -101,10 +95,10 @@ export interface LikeAndCommentInterface {
 }
 
 export interface BotInterface {
-    likeAndComment: LikeAndCommentInterface,
+    likeAndComment: LikeCommentInterface,
 }
 
-const initLikeAndCommentState: LikeAndCommentInterface = {
+const initLikeAndCommentState: LikeCommentInterface = {
     isSelected: false,
     newsFeed: {
         isSelected: false,
@@ -148,108 +142,4 @@ const initBotState: BotInterface = {
     likeAndComment: initLikeAndCommentState,
 }
 
-export interface UserInterface {
-    info: {
-        id: string,
-        username: string,
-        uid: string,
-        password: string,
-        twoFA: string,
-        email: string,
-        emailPassword: string,
-        phoneNumber: string,
-        birthDay: string,
-        gender: string,
-        avatar: string,
-        group: string,
-        type: string,
-        note: string,
-        status: string,
-        createdAt: string,
-        updatedAt: string,
-    },
-    browser: {
-        name: string,
-        mobile: {
-            userAgent: string,
-            screenHeight: number,
-            screenWidth: number,
-            viewportHeight: number,
-            viewportWidth: number,
-        },
-        desktop: {
-            userAgent: string,
-            screenHeight: number,
-            screenWidth: number,
-            viewportHeight: number,
-            viewportWidth: number,
-        }
-    },
-    actions: {
-        isSelected: boolean,
-        [key: string]: unknown,
-    }
-}
-
-const initUserState: UserInterface = {
-    info: {
-        id: "",
-        username: "",
-        uid: "",
-        password: "",
-        twoFA: "",
-        email: "",
-        emailPassword: "",
-        phoneNumber: "",
-        birthDay: "",
-        gender: "",
-        avatar: "",
-        group: "",
-        type: "",
-        note: "",
-        status: "",
-        createdAt: "",
-        updatedAt: "",
-    },
-    browser: {
-        name: "",
-        mobile: {
-            userAgent: "",
-            screenHeight: 0,
-            screenWidth: 0,
-            viewportHeight: 0,
-            viewportWidth: 0
-        },
-        desktop: {
-            userAgent: "",
-            screenHeight: 0,
-            screenWidth: 0,
-            viewportHeight: 0,
-            viewportWidth: 0
-        }
-    },
-    actions: {
-        isSelected: false,
-    },
-}
-
-export interface SettingInterface {
-    isMobile: boolean,
-    proxy: string[],
-    process: number,
-    [key: string]: unknown,
-}
-
-const initSettingState: SettingInterface = {
-    isMobile: false,
-    proxy: [""],
-    process: 1
-};
-
-
-export {
-    initLikeAndCommentState,
-    initBotState,
-    initUserState,
-    initSettingState,
-}
+export { initBotState, initLikeAndCommentState };

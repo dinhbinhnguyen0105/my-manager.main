@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from "electron";
+import userIPCs from "./IPCs/user";
 
 const createMainWindow = (): void => {
     const mainWindow = new BrowserWindow({
@@ -29,4 +30,5 @@ app.whenReady().then(() => {
     createMainWindow();
     app.on("activate", () => (BrowserWindow.getAllWindows().length === 0 && createMainWindow()));
     app.on("window-all-closed", () => process.platform !== "darwin" && app.quit());
+    userIPCs();
 });

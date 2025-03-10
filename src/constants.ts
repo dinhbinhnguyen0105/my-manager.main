@@ -3,6 +3,8 @@ const USER_GET = "/user/get";
 const USER_CREATE = "/user/create";
 const USER_UPDATE = "/user/update";
 const USER_DELETE = "/user/delete";
+const USER_SET_SELECT = "/user/update/select";
+const USER_SET_SELECT_ALL = "/user/update/select_all";
 
 const BOT_LIKE_COMMENT_GET = "/bot/like_comment";
 const BOT_LIKE_COMMENT_UPDATE = "/bot/like_comment/update";
@@ -19,6 +21,8 @@ export {
     USER_CREATE,
     USER_UPDATE,
     USER_DELETE,
+    USER_SET_SELECT,
+    USER_SET_SELECT_ALL,
     BOT_LIKE_COMMENT_GET,
     BOT_LIKE_COMMENT_UPDATE,
     SETTING_GET,
