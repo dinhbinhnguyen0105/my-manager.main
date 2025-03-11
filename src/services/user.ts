@@ -1,5 +1,7 @@
 import path from "path";
 import fs from "fs";
+import { v4 as uuidv4 } from "uuid"
+import UserAgent from 'user-agents';
 import { IPCUserInterface } from "~/types/ipcs";
 import { UserInterface } from "~/types/user";
 
@@ -74,6 +76,32 @@ const create = ({ user }: { user: UserInterface }): Promise<IPCUserInterface> =>
         try {
             initializeDB();
             const db = readDB();
+            const userId = uuidv4();
+            const mobileAgent = new UserAgent({ deviceCategory: "mobile", platform: "iPhone" });
+            const desktopAgent = new UserAgent({
+                deviceCategory: "desktop",
+                platform: "MacIntel",
+                // viewportWidth: { min: 1280 }
+                viewportWidth: 1280
+            });
+            user.info.id = userId;
+            user.browser = {
+                name: userId,
+                mobile: {
+                    userAgent: mobileAgent.toString(),
+                    screenHeight: mobileAgent.data.screenHeight,
+                    screenWidth: mobileAgent.data.screenWidth,
+                    viewportHeight: mobileAgent.data.viewportHeight,
+                    viewportWidth: mobileAgent.data.viewportWidth,
+                },
+                desktop: {
+                    userAgent: desktopAgent.toString(),
+                    screenHeight: desktopAgent.data.screenHeight,
+                    screenWidth: desktopAgent.data.screenWidth,
+                    viewportHeight: desktopAgent.data.viewportHeight,
+                    viewportWidth: desktopAgent.data.viewportWidth,
+                },
+            };
             db.push(user);
             writeDB(db);
             resolve({

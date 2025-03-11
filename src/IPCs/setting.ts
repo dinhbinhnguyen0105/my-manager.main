@@ -1,5 +1,5 @@
 import { ipcMain, IpcMainInvokeEvent } from "electron";
-import * as constants from "~/constants";
+import constants from "~/constants";
 import { SettingInterface } from "~/types/setting";
 import { IPCSettingInterface } from "~/types/ipcs";
 import * as services from "~/services/setting";

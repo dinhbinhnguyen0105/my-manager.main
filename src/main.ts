@@ -1,14 +1,17 @@
 import { app, BrowserWindow } from "electron";
 import userIPCs from "./IPCs/user";
+import path from "path";
 
 const createMainWindow = (): void => {
+    const preloadPath = path.resolve(app.getAppPath(), "dist-electron", "preload.js");
+    console.log({ preloadPath })
     const mainWindow = new BrowserWindow({
         title: "My manager",
         width: 1200,
         height: 800,
         webPreferences: {
-            preload: __dirname + "/preload.js",
-            contextIsolation: false,
+            preload: preloadPath,
+            contextIsolation: true,
             nodeIntegration: false,
             enableBlinkFeatures: "",
         },
@@ -24,6 +27,10 @@ const createMainWindow = (): void => {
         mainWindow.loadFile("./dist-renderer/index.html");
     }
     mainWindow.on("ready-to-show", () => mainWindow.show());
+    mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
+        console.error("Lỗi tải trang:", errorDescription);
+    });
+
 }
 
 app.whenReady().then(() => {

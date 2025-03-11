@@ -1,5 +1,5 @@
-const USER_LIST = "/user";
 const USER_GET = "/user/get";
+const USER_LIST = "/user";
 const USER_CREATE = "/user/create";
 const USER_UPDATE = "/user/update";
 const USER_DELETE = "/user/delete";
@@ -15,7 +15,7 @@ const SETTING_UPDATE = "/setting/update";
 const ACTION_OPEN_BROWSER = "/action/open_browser";
 const ACTION_LIKE_COMMENT = "/action/like_comment";
 
-export {
+const constants = {
     USER_LIST,
     USER_GET,
     USER_CREATE,
@@ -30,3 +30,5 @@ export {
     ACTION_OPEN_BROWSER,
     ACTION_LIKE_COMMENT,
 }
+
+export default constants;
