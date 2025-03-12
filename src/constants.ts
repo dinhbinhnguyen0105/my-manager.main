@@ -1,5 +1,5 @@
-const USER_GET = "/user/get";
 const USER_LIST = "/user";
+const USER_GET = "/user/get";
 const USER_CREATE = "/user/create";
 const USER_UPDATE = "/user/update";
 const USER_DELETE = "/user/delete";

@@ -1,13 +1,13 @@
 import path from "path";
 import fs from "fs";
 import { IPCSettingInterface } from "~/types/ipcs";
-import { SettingInterface } from "~/types/setting";
+import { initSettingState, SettingInterface } from "~/types/setting";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "setting.json");
 
 const initializeDB = (): void => {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({}), { encoding: "utf8" });
+        fs.writeFileSync(dbPath, JSON.stringify(initSettingState), { encoding: "utf8" });
     }
 };
 

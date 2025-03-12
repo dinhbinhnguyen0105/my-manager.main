@@ -1,13 +1,13 @@
 export interface SettingInterface {
     isMobile: boolean,
-    proxy: string[],
+    proxy: string,
     process: number,
     [key: string]: unknown,
 }
 
 const initSettingState: SettingInterface = {
     isMobile: false,
-    proxy: [""],
+    proxy: "",
     process: 1
 };
 

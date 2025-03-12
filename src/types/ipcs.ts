@@ -19,3 +19,8 @@ export interface IPCSettingInterface {
     status: number,
     message: string,
 }
+
+export interface IPCActionInterface {
+    status: number,
+    message: string,
+}

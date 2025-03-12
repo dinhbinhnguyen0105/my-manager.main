@@ -46,7 +46,11 @@ const list = (): Promise<IPCUserInterface> => {
     });
 };
 
-const get = ({ id }: { id: string }): Promise<IPCUserInterface> => {
+const get = ({ id }: { id: string }): Promise<{
+    data: UserInterface | null,
+    status: number,
+    message: string,
+}> => {
     return new Promise((resolve, reject) => {
         try {
             initializeDB();
@@ -54,7 +58,7 @@ const get = ({ id }: { id: string }): Promise<IPCUserInterface> => {
             const user = db.find((user: UserInterface) => user.info.id === id);
             if (user) {
                 resolve({
-                    data: [user],
+                    data: user,
                     status: 200,
                     message: "Successfully retrieved user",
                 });
@@ -85,6 +89,7 @@ const create = ({ user }: { user: UserInterface }): Promise<IPCUserInterface> =>
                 viewportWidth: 1280
             });
             user.info.id = userId;
+            user.info.createdAt = new Date().toString();
             user.browser = {
                 name: userId,
                 mobile: {

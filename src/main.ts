@@ -1,10 +1,11 @@
 import { app, BrowserWindow } from "electron";
 import userIPCs from "./IPCs/user";
 import path from "path";
+import settingIPCs from "./IPCs/setting";
+import actionIPCs from "./IPCs/action";
 
 const createMainWindow = (): void => {
     const preloadPath = path.resolve(app.getAppPath(), "dist-electron", "preload.js");
-    console.log({ preloadPath })
     const mainWindow = new BrowserWindow({
         title: "My manager",
         width: 1200,
@@ -18,8 +19,6 @@ const createMainWindow = (): void => {
         show: false
     });
 
-    console.log(process.env.NODE_ENV);
-
     if (process.env.NODE_ENV === 'development') {
         mainWindow.loadURL("http://localhost:5173/");
     } else {
@@ -28,7 +27,7 @@ const createMainWindow = (): void => {
     }
     mainWindow.on("ready-to-show", () => mainWindow.show());
     mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
-        console.error("Lỗi tải trang:", errorDescription);
+        console.error("Cannot load script:", errorDescription);
     });
 
 }
@@ -38,4 +37,6 @@ app.whenReady().then(() => {
     app.on("activate", () => (BrowserWindow.getAllWindows().length === 0 && createMainWindow()));
     app.on("window-all-closed", () => process.platform !== "darwin" && app.quit());
     userIPCs();
+    settingIPCs();
+    actionIPCs();
 });
