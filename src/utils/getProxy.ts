@@ -30,37 +30,68 @@ const isValidIpPort = (input: string): boolean => {
     return true;
 }
 
-const getProxy = (urls: string[]): Promise<{ status: number, proxy: string }> => {
-    return new Promise(async (resolve, reject) => {
-        // const urlSplitted =url.split("|");
-        for (let url of urls) {
-            if (isValidIpPort(url)) { resolve({ status: 200, proxy: url }); };
+// const getProxy = (urls: string[]): Promise<{ status: number, proxy: string }> => {
+//     return new Promise(async (resolve, reject) => {
+//         // const urlSplitted =url.split("|");
+//         for (let url of urls) {
+//             if (isValidIpPort(url)) { resolve({ status: 200, proxy: url }); };
+//             if (url.includes("https://proxyxoay.shop/")) {
+//                 const resRaw = await fetch(url.trim());
+//                 const res = await resRaw.json();
+//                 console.log(res);
+//                 if (res.status === 100) {
+//                     resolve({
+//                         status: 200,
+//                         proxy: res.proxyhttp,
+//                     });
+//                 } else if (res.status === 101) {
+//                     resolve({
+//                         status: 300,
+//                         proxy: "",
+//                     });
+//                 } else {
+//                     //
+//                 };
+//             } else {
+//                 ///
+//             };
+//         };
+//         reject({
+//             status: 500,
+//             message: "Failed to fetch proxy from server",
+//         });
+//     });
+// };
+
+const getProxy = async (url: string): Promise<{ status: number, message?: string, proxy?: string } | null> => {
+    try {
+        if (isValidIpPort(url)) {
+            return {
+                status: 200,
+                proxy: url,
+            };
+        } else {
             if (url.includes("https://proxyxoay.shop/")) {
                 const resRaw = await fetch(url.trim());
                 const res = await resRaw.json();
-                console.log(res);
                 if (res.status === 100) {
-                    resolve({
+                    return {
                         status: 200,
                         proxy: res.proxyhttp,
-                    });
-                } else if (res.status === 101) {
-                    resolve({
-                        status: 300,
-                        proxy: "",
-                    });
+                    };
                 } else {
-                    //
+                    console.error(res);
+                    return null;
                 };
             } else {
-                ///
+                console.error("Invalid host handler.");
+                return null;
             };
         };
-        reject({
-            status: 500,
-            message: "Failed to fetch proxy from server",
-        });
-    });
-};
+    } catch (error) {
+        console.error(error);
+        return null;
+    };
+}
 
 export default getProxy;

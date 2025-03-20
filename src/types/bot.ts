@@ -1,112 +1,45 @@
-export type ReactionsType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
-export type NewsFeedType = {
-    isSelected: boolean,
-    value: number,
-    like: {
-        isSelected: boolean,
-        value: number,
-    },
-    comment: {
-        isSelected: boolean,
-        value: number,
-    }
-};
-export type WatchType = {
-    isSelected: boolean,
-    value: number,
-    like: {
-        isSelected: boolean,
-        value: number,
-    },
-    comment: {
-        isSelected: boolean,
-        value: number,
-    }
-};
-export type GroupType = {
-    isSelected: boolean,
-    value: number,
-    like: {
-        isSelected: boolean,
-        value: number,
-    },
-    comment: {
-        isSelected: boolean,
-        value: number,
-    }
-};
-export type FriendType = {
-    isSelected: boolean,
-    value: number,
-    like: {
-        isSelected: boolean,
-        value: number,
-    },
-    comment: {
-        isSelected: boolean,
-        value: number,
-    },
-    poke: {
-        isSelected: boolean,
-        value: number,
-    },
-    pokeBack: {
-        isSelected: boolean,
-        value: number,
-    },
-};
-export type PageType = {
-    isSelected: boolean,
-    value: number,
-    url: string,
-    like: {
-        isSelected: boolean,
-        value: number,
-    },
-    comment: {
-        isSelected: boolean,
-        value: number,
-    },
-    invite: {
-        isSelected: boolean,
-        value: number,
-    }
-};
-export type MarketplaceType = {
-    isSelected: boolean,
-};
-export type NotificationType = {
-    isSelected: boolean,
-};
-export type SearchType = {
-    isSelected: boolean,
-};
+// _bot.tsx
 
-export interface LikeCommentInterface {
-    isSelected: boolean,
-    newsFeed: NewsFeedType,
-    watch: WatchType,
-    group: GroupType,
-    friend: FriendType,
-    page: PageType,
-    marketplace: MarketplaceType,
-    notification: NotificationType,
-    search: SearchType,
+
+// type ReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
+
+interface BaseInterface {
+    isSelected: boolean;
+    value: number | string;
 }
 
-export interface BotInterface {
-    likeAndComment: LikeCommentInterface,
+interface InteractionInterface {
+    isSelected: boolean;
+    value: number | string;
+    like: BaseInterface;
+    comment: BaseInterface;
 }
 
-const initLikeAndCommentState: LikeCommentInterface = {
-    isSelected: false,
+interface FriendInterface extends InteractionInterface {
+    poke: BaseInterface;
+    pokeBack: BaseInterface;
+}
+
+interface PageInterface extends InteractionInterface {
+    invite: BaseInterface;
+    url: string;
+};
+
+export type LikeCommentType = {
+    newsFeed: InteractionInterface;
+    group: InteractionInterface;
+    watch: InteractionInterface;
+    friend: FriendInterface;
+    page: PageInterface;
+    marketplace: boolean;
+    notification: boolean;
+    search: boolean;
+    comments: string;
+    reactions: string;
+}
+
+const initLikeCommentState: LikeCommentType = {
     newsFeed: {
-        isSelected: false,
-        value: 0,
-        like: { isSelected: false, value: 0 },
-        comment: { isSelected: false, value: 0 },
-    },
-    watch: {
         isSelected: false,
         value: 0,
         like: { isSelected: false, value: 0 },
@@ -118,13 +51,19 @@ const initLikeAndCommentState: LikeCommentInterface = {
         like: { isSelected: false, value: 0 },
         comment: { isSelected: false, value: 0 },
     },
+    watch: {
+        isSelected: false,
+        value: 0,
+        like: { isSelected: false, value: 0 },
+        comment: { isSelected: false, value: 0 },
+    },
     friend: {
         isSelected: false,
         value: 0,
         like: { isSelected: false, value: 0 },
         comment: { isSelected: false, value: 0 },
         poke: { isSelected: false, value: 0 },
-        pokeBack: { isSelected: false, value: 0 }
+        pokeBack: { isSelected: false, value: 0 },
     },
     page: {
         isSelected: false,
@@ -134,12 +73,29 @@ const initLikeAndCommentState: LikeCommentInterface = {
         comment: { isSelected: false, value: 0 },
         invite: { isSelected: false, value: 0 },
     },
-    marketplace: { isSelected: false },
-    notification: { isSelected: false },
-    search: { isSelected: false },
-};
-const initBotState: BotInterface = {
-    likeAndComment: initLikeAndCommentState,
+    marketplace: false,
+    notification: false,
+    search: false,
+    comments: "",
+    reactions: "",
 }
 
-export { initBotState, initLikeAndCommentState };
+export interface BotInterface {
+    likeComment: LikeCommentType;
+}
+
+const initBotState: BotInterface = {
+    likeComment: initLikeCommentState
+};
+
+export type BotActionType = {
+    type: string;
+    likeComment?: LikeCommentType;
+    path?: string;
+    value?: number | string | boolean;
+}
+
+export {
+    initLikeCommentState,
+    initBotState,
+};

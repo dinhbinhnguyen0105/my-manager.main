@@ -2,11 +2,14 @@
 import path from "path";
 import { IPCActionInterface } from "~/types/ipcs"
 import { SettingInterface } from "~/types/setting";
+import { LikeCommentType } from "~/types/bot";
 import { get as getUser } from "./user";
 import { get as getSetting } from "./setting";
 import getProxy from "~/utils/getProxy";
 import { BrowserConfigType, PuppeteerConfigType } from "~/types/puppeteer";
-import PuppeteerController from "~/puppeteer/PuppeteerController";
+import PuppeteerController from "~/puppeteer/Puppeteer";
+import { exit } from "process";
+import preparePuppeteerConfig from "~/utils/preparePuppeteerConfig";
 
 const userDataDirs = path.resolve(__dirname, "..", "bin", "browsers");
 
@@ -18,13 +21,11 @@ const handleError = (error: unknown, reject: (reason?: any) => void, context: st
     });
 };
 
-const openBrowser = ({ id }: { id: string }): Promise<IPCActionInterface> => {
+const openBrowser = ({ id, setting }: { id: string, setting: SettingInterface }): Promise<IPCActionInterface> => {
     return new Promise(async (resolve, reject) => {
         try {
             const userRaw = await getUser({ id });
-            const settingRaw = await getSetting();
             const user = userRaw.data;
-            const setting = settingRaw.data;
 
             let browserConfig: BrowserConfigType = {
                 userAgent: "",
@@ -34,23 +35,34 @@ const openBrowser = ({ id }: { id: string }): Promise<IPCActionInterface> => {
                 viewportWidth: 0,
                 isMobile: false,
             };
-            let proxy;
+            let proxy = null;
             const puppeteerConfig: PuppeteerConfigType = {
                 headless: false,
                 userDataDir: path.join(userDataDirs, id),
             }
             if (!user) { reject({ status: 500, message: `User with id [${id}] not found.` }) }
             else {
-                const _ = user.browser.mobile;
-                browserConfig = {
-                    ..._,
-                    isMobile: setting?.isMobile || false,
-                }
+                if (setting?.isMobile) {
+                    browserConfig = {
+                        ...user.browser.mobile,
+                        isMobile: true,
+                    };
+                } else {
+                    browserConfig = {
+                        ...user.browser.desktop,
+                        isMobile: false,
+                    };
+                };
             }
             if (setting?.proxy) {
                 const urls = setting.proxy.split(",");
-                const proxyRaw = await getProxy(urls.map(url => url.trim()));
-                proxy = proxyRaw.proxy;
+                for (let url of urls) {
+                    const proxyRaw = await getProxy(url.trim());
+                    if (proxyRaw) {
+                        proxy = proxyRaw.proxy;
+                        break;
+                    } else { continue; };
+                };
             } else {
                 reject({ status: 500, message: `Proxy not found` });
             };
@@ -71,6 +83,45 @@ const openBrowser = ({ id }: { id: string }): Promise<IPCActionInterface> => {
     });
 };
 
+const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComment: LikeCommentType, setting: SettingInterface }): Promise<IPCActionInterface> => {
+    return new Promise(async (resolve, reject) => {
+        console.log({ ids, likeComment, setting });
+
+
+        while (ids.length > 0) {
+            const tasks = [];
+            const proxySources = setting.proxy.split(",");
+            for (let i = 0; i < setting.process; i++) {
+                let proxy = null;
+                while (proxySources.length > 0) {
+                    const proxySource = proxySources.pop();
+                    if (!proxySource) { break; };
+                    const proxyRaw = await getProxy(proxySource.trim());
+                    if (proxyRaw) {
+                        proxy = proxyRaw.proxy;
+                        break;
+                    } else { continue; };
+                };
+                if (!proxy) { continue; };
+                const id = ids.pop();
+                if (!id) { break; };
+                const puppeteerConfig = await preparePuppeteerConfig({ id, isMobile: setting.isMobile, proxy })
+                tasks.push(puppeteerConfig);
+            };
+
+            console.log({ taskLength: tasks.length });
+            console.log("------ tasks ---------")
+            console.log(tasks);
+
+            break;
+            // handler
+        }
+    })
+}
+
+
+
 export {
     openBrowser,
+    botLikeComment,
 };

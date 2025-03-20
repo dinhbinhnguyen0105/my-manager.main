@@ -3,6 +3,7 @@ import userIPCs from "./IPCs/user";
 import path from "path";
 import settingIPCs from "./IPCs/setting";
 import actionIPCs from "./IPCs/action";
+import botIPCs from "./IPCs/bot";
 
 const createMainWindow = (): void => {
     const preloadPath = path.resolve(app.getAppPath(), "dist-electron", "preload.js");
@@ -22,7 +23,6 @@ const createMainWindow = (): void => {
     if (process.env.NODE_ENV === 'development') {
         mainWindow.loadURL("http://localhost:5173/");
     } else {
-        console.log({ appPath: app.getAppPath() });
         mainWindow.loadFile("./dist-renderer/index.html");
     }
     mainWindow.on("ready-to-show", () => mainWindow.show());
@@ -39,4 +39,5 @@ app.whenReady().then(() => {
     userIPCs();
     settingIPCs();
     actionIPCs();
+    botIPCs();
 });

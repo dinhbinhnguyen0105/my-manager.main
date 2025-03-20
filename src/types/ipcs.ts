@@ -1,5 +1,5 @@
 import { UserInterface } from "~/types/user";
-import { LikeCommentInterface } from "./bot";
+import { BotInterface } from "./bot";
 import { SettingInterface } from "./setting";
 
 export interface IPCUserInterface {
@@ -8,8 +8,8 @@ export interface IPCUserInterface {
     message: string,
 }
 
-export interface IPCLikeCommentInterface {
-    data: LikeCommentInterface | null,
+export interface IPCBotInterface {
+    data?: BotInterface | null,
     status: number,
     message: string,
 }

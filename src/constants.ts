@@ -6,8 +6,8 @@ const USER_DELETE = "/user/delete";
 const USER_SET_SELECT = "/user/update/select";
 const USER_SET_SELECT_ALL = "/user/update/select_all";
 
-const BOT_LIKE_COMMENT_GET = "/bot/like_comment";
-const BOT_LIKE_COMMENT_UPDATE = "/bot/like_comment/update";
+const BOT_GET = "/bot";
+const BOT_UPDATE = "/bot/update";
 
 const SETTING_GET = "/setting";
 const SETTING_UPDATE = "/setting/update";
@@ -23,8 +23,8 @@ const constants = {
     USER_DELETE,
     USER_SET_SELECT,
     USER_SET_SELECT_ALL,
-    BOT_LIKE_COMMENT_GET,
-    BOT_LIKE_COMMENT_UPDATE,
+    BOT_GET,
+    BOT_UPDATE,
     SETTING_GET,
     SETTING_UPDATE,
     ACTION_OPEN_BROWSER,

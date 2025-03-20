@@ -1,13 +1,14 @@
 // PuppeteerController.ts
 import fs from "fs";
+import { ElementHandle, Browser, Page } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth"
 import { BrowserConfigType, PuppeteerControllerConfigInterface, PuppeteerControllerMainConfigInterface } from "~/types/puppeteer";
 import { readConfigFile } from "~/utils/helper";
 
-class PuppeteerController {
-    browser: any;
-    page: any;
+class Puppeteer {
+    browser: Browser | null;
+    page: Page | null;
     proxyConfigs: { ip: string, port: string, username: string, password: string, };
     browserConfigs: BrowserConfigType;
     mainConfig: PuppeteerControllerMainConfigInterface
@@ -39,6 +40,7 @@ class PuppeteerController {
             executablePath: executablePath,
             ...configs.puppeteerConfig,
         };
+        console.log(this.mainConfig);
     };
 
     async initBrowser() {
@@ -73,6 +75,36 @@ class PuppeteerController {
         });
         return this.browser;
     }
+    async cleanup() {
+        try {
+            if (this.browser) {
+                await this.browser.close();
+                console.log("Browser closed successfully.");
+                this.browser = null;
+                this.page = null;
+            } else {
+                console.log("No browser instance found.");
+            }
+        } catch (error) {
+            console.error("Error while closing the browser:", error);
+        }
+    };
+    async scrollToElement(element: ElementHandle) {
+        try {
+            if (!this.page) { return false; };
+            await this.page.evaluate((el: Element) => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }, element);
+            // await this.delay(1000, 2000); // Wait for the scroll to complete
+            return true;
+        } catch (err) {
+            console.error("ERROR [scrollToElement]:", err);
+            return false;
+        }
+    }
+    async delay(min = 300, max = 1000) {
+        await new Promise(resolve => setTimeout(resolve, Math.random() * (max - min) + min));
+    }
 }
 
-export default PuppeteerController;
+export default Puppeteer;

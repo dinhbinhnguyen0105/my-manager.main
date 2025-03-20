@@ -5,8 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dist": "tsc && tsc-alias",
-    "build": "npm run dist && cross-env NODE_ENV=production electron .",
-    "dev": "npm run dist && cross-env NODE_ENV=development electron ."
+    "dev:local": "npm run dist && cross-env NODE_ENV=production electron .",
+    "dev:host": "npm run dist && cross-env NODE_ENV=development electron ."
   },
   "type": "commonjs",
   "keywords": [],
@@ -20,6 +20,7 @@
     "@types/typescript": "^2.0.0",
     "@types/user-agents": "^1.0.4",
     "cross-env": "^7.0.3",
+    "domhandler": "^5.0.3",
     "electron": "^35.0.1",
     "tsc-alias": "^1.8.11",
     "tsconfig-paths": "^4.2.0",

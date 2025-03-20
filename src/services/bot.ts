@@ -1,14 +1,14 @@
 import path from "path";
 import fs from "fs";
-import { IPCLikeCommentInterface } from "~/types/ipcs";
-import { LikeCommentInterface, BotInterface } from "~/types/bot";
+import { IPCBotInterface, } from "~/types/ipcs";
+import { BotInterface, initBotState } from "~/types/bot";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "bot.json");
 
 const initializeDB = (): void => {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({}), { encoding: "utf8" });
-    }
+        fs.writeFileSync(dbPath, JSON.stringify(initBotState), { encoding: "utf8" });
+    };
 };
 
 const readDB = (): BotInterface => {
@@ -24,45 +24,37 @@ const handleError = (error: unknown, reject: (reason?: any) => void, context: st
     });
 };
 
-const getLikeComment = (): Promise<IPCLikeCommentInterface> => {
+const bot_get = (): Promise<IPCBotInterface> => {
     return new Promise((resolve, reject) => {
         try {
             initializeDB();
             const db: BotInterface = readDB();
-            const likeAndCommentDB: LikeCommentInterface = db.likeAndComment;
             resolve({
-                data: likeAndCommentDB,
+                data: db,
                 status: 200,
-                message: "Successfully retrieved data from the database [LikeAndComment]",
+                message: "Successfully retrieved data from the database [bot]",
             });
         } catch (error) {
-            handleError(error, reject, "getLikeComment");
-        }
+            handleError(error, reject, "bot_get");
+        };
     });
 };
 
-const updateLikeComment = ({ likeComment }: { likeComment: LikeCommentInterface }): Promise<IPCLikeCommentInterface> => {
+const bot_update = ({ bot }: { bot: BotInterface }): Promise<IPCBotInterface> => {
     return new Promise((resolve, reject) => {
         try {
             initializeDB();
-            const db: BotInterface = readDB();
-            const newDB: BotInterface = {
-                ...db,
-                likeAndComment: likeComment,
-            };
-            fs.writeFileSync(dbPath, JSON.stringify(newDB), { encoding: "utf8" });
+            fs.writeFileSync(dbPath, JSON.stringify(bot), { encoding: "utf8" });
             resolve({
                 data: null,
                 status: 200,
-                message: "Successfully update LikeAndComment",
+                message: "Successfully update bot",
             });
-        } catch (error) {
-            handleError(error, reject, "updateLikeComment");
-        }
+        } catch (error) { handleError(error, reject, "updateLikeComment"); };
     });
 };
 
 export {
-    getLikeComment,
-    updateLikeComment,
+    bot_get,
+    bot_update,
 };
