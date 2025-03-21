@@ -10,6 +10,7 @@ import { BrowserConfigType, PuppeteerConfigType } from "~/types/puppeteer";
 import PuppeteerController from "~/puppeteer/Puppeteer";
 import { exit } from "process";
 import preparePuppeteerConfig from "~/utils/preparePuppeteerConfig";
+import likeCommentController from "./likeCommentController";
 
 const userDataDirs = path.resolve(__dirname, "..", "bin", "browsers");
 
@@ -56,13 +57,16 @@ const openBrowser = ({ id, setting }: { id: string, setting: SettingInterface })
             }
             if (setting?.proxy) {
                 const urls = setting.proxy.split(",");
-                for (let url of urls) {
-                    const proxyRaw = await getProxy(url.trim());
-                    if (proxyRaw) {
-                        proxy = proxyRaw.proxy;
-                        break;
-                    } else { continue; };
-                };
+                while (urls.length > 0) {
+                    const url = urls.pop();
+                    if (url) {
+                        const proxyRaw = await getProxy(url);
+                        if (proxyRaw) {
+                            proxy = proxyRaw.proxy;
+                            break;
+                        } else { continue; };
+                    }
+                }
             } else {
                 reject({ status: 500, message: `Proxy not found` });
             };
@@ -85,8 +89,7 @@ const openBrowser = ({ id, setting }: { id: string, setting: SettingInterface })
 
 const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComment: LikeCommentType, setting: SettingInterface }): Promise<IPCActionInterface> => {
     return new Promise(async (resolve, reject) => {
-        console.log({ ids, likeComment, setting });
-
+        // console.log({ ids, likeComment, setting });
 
         while (ids.length > 0) {
             const tasks = [];
@@ -106,13 +109,21 @@ const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComm
                 const id = ids.pop();
                 if (!id) { break; };
                 const puppeteerConfig = await preparePuppeteerConfig({ id, isMobile: setting.isMobile, proxy })
-                tasks.push(puppeteerConfig);
+                if (puppeteerConfig) {
+                    tasks.push(puppeteerConfig);
+                }
             };
 
-            console.log({ taskLength: tasks.length });
-            console.log("------ tasks ---------")
-            console.log(tasks);
-
+            // console.log({ taskLength: tasks.length });
+            // console.log("------ tasks ---------")
+            // console.log(tasks);
+            if (tasks) {
+                await likeCommentController({
+                    tasks: tasks,
+                    likeComment: likeComment,
+                    concurrency: setting.process
+                })
+            }
             break;
             // handler
         }

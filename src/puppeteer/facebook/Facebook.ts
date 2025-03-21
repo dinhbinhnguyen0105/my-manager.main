@@ -138,14 +138,6 @@ class Facebook extends Puppeteer {
         }
     }
 
-    async initConstants() {
-        try {
-
-        } catch (error) {
-
-        };
-    }
-
     async checkLogin() {
         try {
             if (!this.page) { return false; }
@@ -218,6 +210,7 @@ class Facebook extends Puppeteer {
     async handleReact(article: ElementHandle, reaction: string): Promise<boolean> {
         try {
             if (article) {
+                console.log({ reaction });
                 const reactions = ["like", "love", "care", "haha", "wow", "sad", "angry",];
                 const likeButtonElm = await this.getButtonWithAriaLabel(article, this.ariaLabels[this.language].btn__like);
                 if (likeButtonElm) {
@@ -246,26 +239,38 @@ class Facebook extends Puppeteer {
     async handleComment(article: ElementHandle, comment: string): Promise<boolean> {
         try {
             if (article) {
+                console.log({ comment });
                 const commentBtnElm = await this.getButtonWithAriaLabel(article, this.ariaLabels[this.language].btn__comment);
                 if (commentBtnElm) {
                     await this.scrollToElement(commentBtnElm);
                     await this.delay();
                     await commentBtnElm.click();
                     await this.delay();
-                    if (await this.closeAnonymousDialog()) { return false; };
-                    const textboxElm = await article.waitForSelector(this.selectors.textbox);
-                    if (textboxElm) {
-                        await this.delay();
+                    try {
+                        const textboxElm = await article.waitForSelector(this.selectors.textbox, { timeout: 15_000 });
                         textboxElm?.focus();
                         await this.delay();
-                        await textboxElm.type(comment);
-                        const submitCommentBtnElm = await this.getButtonWithAriaLabel(article, this.ariaLabels[this.language].btn__submitComment);
-                        if (submitCommentBtnElm) {
+                        await textboxElm?.type(comment);
+                        await this.delay();
+                        const submitBtnElm = await this.getButtonWithAriaLabel(article, this.ariaLabels[this.language].btn__submitComment);
+                        submitBtnElm?.click();
+                        await this.delay(2000, 3000);
+                    } catch {
+                        const commentDialog = await this.page?.$(this.selectors.dialog__anonymous);
+                        if (commentDialog) {
+                            const textboxElm = await commentDialog.waitForSelector(this.selectors.textbox, { timeout: 15_000 });
+                            textboxElm?.focus();
                             await this.delay();
-                            await submitCommentBtnElm.click();
-                            return true;
+                            await textboxElm?.type(comment);
+                            await this.delay();
+                            const submitBtnElm = await this.getButtonWithAriaLabel(commentDialog, this.ariaLabels[this.language].btn__submitComment);
+                            submitBtnElm?.click();
+                            await this.delay(2000, 3000);
+                            await this.closeAnonymousDialog();
+                            await this.delay();
                         };
                     };
+                    return true;
                 };
             };
             return false;
@@ -281,26 +286,38 @@ class Facebook extends Puppeteer {
             await this.page.goto(url);
             const mainContainerElm = await this.page.waitForSelector(this.selectors.container__main, { timeout: 60_000 });
             const startTime = Date.now();
-            let count = 0;
+            // let count = 0;
+            let articleCount = 0;
+            let currentArticle = 0;
             while (Date.now() - startTime < duration) {
                 if (mainContainerElm) {
                     await mainContainerElm.waitForSelector(this.selectors.article__feed);
-                    const articleElms = await mainContainerElm.$$(this.selectors.article__feed);
-                    if (count < articleElms.length) {
-                        await this.scrollToElement(articleElms[count]);
+                    let articleElms = await mainContainerElm.$$(this.selectors.article__feed);
+                    for (let articleElm of articleElms) {
+                        const articleAttr = await articleElm.evaluate(elm => elm.getAttribute("data-article"));
+                        if (!articleAttr) {
+                            await articleElm.evaluate((elm, articleCount) => elm.setAttribute("data-article", articleCount.toString()), articleCount);
+                            articleCount++;
+                        };
+                    };
+
+                    const articleElm = await mainContainerElm.$(`div[data-article="${currentArticle}"]`);
+                    if (articleElm) {
+                        await this.scrollToElement(articleElm);
                         await this.delay(1000, 3000);
+                        currentArticle++;
                         if (Math.random() < 0.2) {
                             if (reactions.length > 0) {
-                                const isLiked = await this.handleReact(articleElms[count], reactions[reactions.length - 1]);
+                                const isLiked = await this.handleReact(articleElm, reactions[reactions.length - 1]);
                                 isLiked && reactions.pop();
                             };
                             if (comments.length > 0) {
-                                const isComments = await this.handleComment(articleElms[count], reactions[comments.length - 1]);
+                                const isComments = await this.handleComment(articleElm, comments[comments.length - 1]);
                                 isComments && comments.pop();
                             };
                         }
-                        count++;
-                    };
+                    }
+                    else { return false; };
                 } else { return false; }
             }
             return true;
