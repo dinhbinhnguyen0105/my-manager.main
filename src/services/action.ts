@@ -114,9 +114,10 @@ const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComm
                 }
             };
 
-            // console.log({ taskLength: tasks.length });
-            // console.log("------ tasks ---------")
-            // console.log(tasks);
+            console.log({ taskLength: tasks.length });
+            console.log("------ tasks ---------")
+            console.log(tasks);
+
             if (tasks) {
                 await likeCommentController({
                     tasks: tasks,
