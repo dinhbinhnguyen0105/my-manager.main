@@ -1,13 +1,14 @@
 import process from "process";
-import { PuppeteerControllerConfigInterface } from "~/types/puppeteer";
+import { ConfigInterface } from "~/types/puppeteer";
 import Facebook from "./Facebook";
 import { LikeCommentType } from "~/types/bot";
+import { ElementHandle } from "puppeteer";
 
 class LikeComment extends Facebook {
     likeComment: LikeCommentType;
     reactions: string[];
     comments: string[];
-    constructor(configs: PuppeteerControllerConfigInterface, likeComment: LikeCommentType) {
+    constructor(configs: ConfigInterface, likeComment: LikeCommentType) {
         super(configs);
         this.likeComment = likeComment;
         this.reactions = likeComment.reactions.split("|");
@@ -16,21 +17,17 @@ class LikeComment extends Facebook {
         this.comments = this.comments.map(comment => comment.trim());
     }
 
-    static async run(configs: PuppeteerControllerConfigInterface, likeComment: LikeCommentType) {
+    static async run(configs: ConfigInterface, likeComment: LikeCommentType) {
         const controller = new LikeComment(configs, likeComment);
         try {
             await controller.initBrowser();
             if (!await controller.checkLogin()) return false;
-            // const pageLanguage = await controller.evaluate(() => document.documentElement.lang);
             const language = await controller.page?.evaluate(() => document.documentElement.lang);
-            if (language?.trim().toLocaleLowerCase() === "vi") {
-                controller.language = "vi";
-            } else {
-                controller.language = "en";
-            }
-            if (likeComment.newsFeed.isSelected) {
-                await controller.handleNewsFeed();
-            }
+            if (language?.trim().toLocaleLowerCase() === "vi") { controller.language = "vi"; }
+            else { controller.language = "en"; };
+
+            if (likeComment.newsFeed.isSelected) { await controller.handleNewsFeed(); }
+
             console.log("Finished");
             return true;
         } catch (error) {
@@ -51,7 +48,6 @@ class LikeComment extends Facebook {
             const duration = typeof this.likeComment.newsFeed.value === "string" ? parseInt(this.likeComment.newsFeed.value) : this.likeComment.newsFeed.value;
             const likeValue = typeof this.likeComment.newsFeed.like.value === "string" ? 0 : this.likeComment.newsFeed.like.value;
             const commentValue = typeof this.likeComment.newsFeed.comment.value === "string" ? 0 : this.likeComment.newsFeed.comment.value;
-            // const reactions = this.reactions.slice(0,  parseInt(this.likeComment.newsFeed.like.value))
             const isFeed = await this.handleInteractFeeds(
                 "https://www.facebook.com/?filter=all&sk=h_chr",
                 this.likeComment.newsFeed.like.isSelected ? this.reactions.slice(0, likeValue) : [],
@@ -65,11 +61,37 @@ class LikeComment extends Facebook {
             return false;
         };
     };
+
+    async handleWatch(): Promise<boolean> {
+        const watch = async (articleElm: ElementHandle): Promise<boolean> => {
+            try {
+                await this.delay();
+                await this.scrollToElement(articleElm);
+                await this.delay();
+                const videoPlayerElm = await articleElm.waitForSelector(this.selectors.video_player);
+                if (!videoPlayerElm) { return false; };
+                await this.scrollToElement(videoPlayerElm)
+
+                return false;
+            } catch (error) {
+                console.error("ERROR [handleWatch > watch] : ", error);
+                return false;
+            }
+        }
+
+        try {
+
+            return false;
+        } catch (error) {
+            console.error(error);
+            return false;
+        };
+    };
 };
 
 if (require.main === module) {
     process.on('message', async (msg: {
-        task: PuppeteerControllerConfigInterface,
+        task: ConfigInterface,
         likeComment: LikeCommentType
     }) => {
         try {

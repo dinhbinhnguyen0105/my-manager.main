@@ -1,12 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { PuppeteerConfigType, PuppeteerControllerConfigInterface } from "~/types/puppeteer";
+import { PuppeteerConfigType, ConfigInterface } from "~/types/puppeteer";
 import { UserInterface } from "~/types/user";
 import getProxy from "./getProxy";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "user.json");
 
-const preparePuppeteerConfig = async ({ id, isMobile, proxy }: { id: string, isMobile: boolean, proxy: string }): Promise<PuppeteerControllerConfigInterface | null> => {
+const preparePuppeteerConfig = async ({ id, isMobile, proxy }: { id: string, isMobile: boolean, proxy: string }): Promise<ConfigInterface | null> => {
     return new Promise(async (resolve, reject) => {
         try {
             const rawDB = fs.readFileSync(dbPath, { encoding: "utf8" });

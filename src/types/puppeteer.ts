@@ -14,16 +14,8 @@ export type BrowserConfigType = {
     isMobile: boolean,
 }
 
-export interface PuppeteerControllerConfigInterface {
+export interface ConfigInterface {
     puppeteerConfig: PuppeteerConfigType,
     browserConfig: BrowserConfigType,
     proxy: string,
-}
-
-export interface PuppeteerControllerMainConfigInterface {
-    ignoreHTTPSErrors: boolean,
-    args: string[],
-    executablePath: string,
-    headless: boolean,
-    userDataDir: string,
 }

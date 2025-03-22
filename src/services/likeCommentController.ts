@@ -2,14 +2,14 @@
 import { fork } from "child_process";
 import path from "path";
 import { LikeCommentType } from "~/types/bot";
-import { PuppeteerControllerConfigInterface } from "~/types/puppeteer";
+import { ConfigInterface } from "~/types/puppeteer";
 
 const likeCommentController = async ({
     tasks,
     likeComment,
     concurrency = 3
 }: {
-    tasks: PuppeteerControllerConfigInterface[],
+    tasks: ConfigInterface[],
     likeComment: LikeCommentType,
     concurrency?: number
 }) => {

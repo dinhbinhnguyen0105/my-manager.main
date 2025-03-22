@@ -3,7 +3,7 @@ import fs from "fs";
 import { ElementHandle, Browser, Page } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth"
-import { BrowserConfigType, PuppeteerControllerConfigInterface, PuppeteerControllerMainConfigInterface } from "~/types/puppeteer";
+import { BrowserConfigType, ConfigInterface } from "~/types/puppeteer";
 import { readConfigFile } from "~/utils/helper";
 
 class Puppeteer {
@@ -11,8 +11,14 @@ class Puppeteer {
     page: Page | null;
     proxyConfigs: { ip: string, port: string, username: string, password: string, };
     browserConfigs: BrowserConfigType;
-    mainConfig: PuppeteerControllerMainConfigInterface
-    constructor(configs: PuppeteerControllerConfigInterface) {
+    mainConfig: {
+        ignoreHTTPSErrors: boolean,
+        args: string[],
+        executablePath: string,
+        headless: boolean,
+        userDataDir: string,
+    }
+    constructor(configs: ConfigInterface) {
         puppeteer.use(StealthPlugin());
         this.browser = null;
         this.page = null;

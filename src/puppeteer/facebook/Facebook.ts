@@ -1,6 +1,6 @@
 import path from "path";
 import Puppeteer from "../Puppeteer";
-import { PuppeteerControllerConfigInterface } from "~/types/puppeteer";
+import { ConfigInterface } from "~/types/puppeteer";
 import { ElementHandle } from "puppeteer";
 // import { Element } from "domhandler";
 
@@ -16,6 +16,7 @@ class Facebook extends Puppeteer {
         button: string;
         button__ellipsis: string;
         textbox: string;
+        video_player: string;
     };
     ariaLabels: {
         vi: {
@@ -65,7 +66,7 @@ class Facebook extends Puppeteer {
             dialog__createListing__btn__post: string;
         };
     }
-    constructor(options: PuppeteerControllerConfigInterface) {
+    constructor(options: ConfigInterface) {
         super(options);
         this.language = "vi";
         this.selectors = {
@@ -79,7 +80,10 @@ class Facebook extends Puppeteer {
 
             button: "div[role='button']",
             button__ellipsis: "div[aria-expanded='false'][role='button']",
+
             textbox: "div[role='textbox']",
+
+            video_player: "div[role='presentation']",
         }
         this.ariaLabels = {
             vi: {
