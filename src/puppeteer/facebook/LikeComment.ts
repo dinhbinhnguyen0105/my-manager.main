@@ -70,7 +70,11 @@ class LikeComment extends Facebook {
                 await this.delay();
                 const videoPlayerElm = await articleElm.waitForSelector(this.selectors.video_player);
                 if (!videoPlayerElm) { return false; };
-                await this.scrollToElement(videoPlayerElm)
+                await this.scrollToElement(videoPlayerElm);
+                await this.delay();
+                await videoPlayerElm.hover();
+                await this.delay(1000, 3000);
+                const button = await 
 
                 return false;
             } catch (error) {
