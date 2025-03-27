@@ -6,6 +6,7 @@ import { IPCUserInterface } from "~/types/ipcs";
 import { UserInterface } from "~/types/user";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "user.json");
+const browserPath = path.join(__dirname, "..", "bin", "browsers");
 
 const initializeDB = (): void => {
     if (!fs.existsSync(dbPath)) {
@@ -148,11 +149,33 @@ const update = ({ user }: { user: UserInterface }): Promise<IPCUserInterface> =>
 };
 
 const del = ({ id }: { id: string }): Promise<IPCUserInterface> => {
+    const removeDirectoryRecursive = (folderPath: string): boolean => {
+        try {
+            if (fs.existsSync(folderPath)) {
+                fs.readdirSync(folderPath).forEach((file) => {
+                    const currentPath = path.join(folderPath, file);
+                    if (fs.lstatSync(currentPath).isDirectory()) {
+                        removeDirectoryRecursive(currentPath); // Đệ quy nếu là thư mục con
+                    } else {
+                        fs.unlinkSync(currentPath); // Xóa tệp
+                    }
+                });
+                fs.rmdirSync(folderPath); // Xóa thư mục sau khi đã xóa hết nội dung
+            }
+            return true;
+        } catch (error) {
+            console.error("ERROR [removeDirectoryRecursive]: ", error);
+            return false;
+        }
+    };
+
     return new Promise((resolve, reject) => {
         try {
             initializeDB();
             const db = readDB();
             const newDB = db.filter((user: UserInterface) => user.info.id !== id);
+            const folderPath = path.join(browserPath, id);
+            removeDirectoryRecursive(folderPath);
             if (newDB.length === db.length) {
                 resolve({
                     data: null,

@@ -2,7 +2,6 @@ import path from "path";
 import fs from "fs";
 import { PuppeteerConfigType, ConfigInterface } from "~/types/puppeteer";
 import { UserInterface } from "~/types/user";
-import getProxy from "./getProxy";
 
 const dbPath = path.join(__dirname, "..", "bin", "db", "user.json");
 

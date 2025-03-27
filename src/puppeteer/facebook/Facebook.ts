@@ -1,7 +1,7 @@
 import path from "path";
 import Puppeteer from "../Puppeteer";
 import { ConfigInterface } from "~/types/puppeteer";
-import { ElementHandle } from "puppeteer";
+import { ElementHandle, Page } from "puppeteer";
 // import { Element } from "domhandler";
 
 class Facebook extends Puppeteer {
@@ -14,9 +14,14 @@ class Facebook extends Puppeteer {
         article__feed: string;
         article__video: string;
         button: string;
-        button__ellipsis: string;
+        button__expand: string;
         textbox: string;
         video_player: string;
+        loading_state: string;
+        popup__menu: string;
+        popup__menu__item: string;
+
+        checkbox_false: string;
     };
     ariaLabels: {
         vi: {
@@ -65,7 +70,15 @@ class Facebook extends Puppeteer {
             dialog__createListing__btn__next: string;
             dialog__createListing__btn__post: string;
         };
-    }
+    };
+    textContents: {
+        vi: {
+            inviteFriend: string;
+        };
+        en: {
+            inviteFriend: string;
+        };
+    };
     constructor(options: ConfigInterface) {
         super(options);
         this.language = "vi";
@@ -79,11 +92,16 @@ class Facebook extends Puppeteer {
             article__video: "div[data-virtualized]",
 
             button: "div[role='button']",
-            button__ellipsis: "div[aria-expanded='false'][role='button']",
+            button__expand: "div[aria-expanded='false'][role='button']",
 
             textbox: "div[role='textbox']",
 
             video_player: "div[role='presentation']",
+            loading_state: "div[data-visualcompletion='loading-state']",
+
+            popup__menu: "div[role='menu']",
+            popup__menu__item: "div[role='menuitem']",
+            checkbox_false: "div[role='checkbox'][aria-checked='false']",
         }
         this.ariaLabels = {
             vi: {
@@ -105,13 +123,13 @@ class Facebook extends Puppeteer {
                 dialog__reactions: "cảm xúc",
                 dialog__leavePage: "rời khỏi trang?",
                 dialog__createListing: "tạo bài niêm yết mới",
-                dialog__videoViewer: "trình xem video",
                 dialog__inviteFriend: "mời bạn bè",
 
                 dialog__leavePage__btn__leave: "rời khỏi trang",
                 dialog__createListing__btn__next: "tiếp",
                 dialog__createListing__btn__post: "đăng",
 
+                dialog__videoViewer: "trình xem video",
             },
             en: {
                 container__feeds: "feeds",
@@ -132,14 +150,23 @@ class Facebook extends Puppeteer {
                 dialog__reactions: "reactions",
                 dialog__leavePage: "leave page?",
                 dialog__createListing: "create new listing",
-                dialog__videoViewer: "video viewer",
                 dialog__inviteFriend: "invite friends",
 
                 dialog__leavePage__btn__leave: "leave page",
                 dialog__createListing__btn__next: "next",
                 dialog__createListing__btn__post: "post",
+
+                dialog__videoViewer: "video viewer",
             }
-        }
+        };
+        this.textContents = {
+            vi: {
+                inviteFriend: "mời bạn bè",
+            },
+            en: {
+                inviteFriend: "invite friends",
+            },
+        };
     }
 
     async checkLogin() {
@@ -182,6 +209,28 @@ class Facebook extends Puppeteer {
             return false;
         } catch (error) {
             console.log("ERROR: ", error);
+            return false;
+        }
+    };
+
+    async closeDialog(dialogElm: ElementHandle): Promise<boolean> {
+        try {
+            if (!dialogElm) { return false; };
+            for (let i = 0; i < 5; i++) {
+                if (dialogElm) {
+                    const button = await this.getButtonWithAriaLabel(dialogElm, this.ariaLabels[this.language].btn__close);
+                    if (button) {
+                        button.click();
+                        return true;
+                    } else { return false; };
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                };
+            };
+            return false;
+        } catch (error) {
+            console.log("ERROR [closeDialog]: ", error);
             return false;
         }
     };
@@ -241,9 +290,9 @@ class Facebook extends Puppeteer {
     };
 
     async handleComment(article: ElementHandle, comment: string): Promise<boolean> {
+        // const comment
         try {
             if (article) {
-                console.log({ comment });
                 const commentBtnElm = await this.getButtonWithAriaLabel(article, this.ariaLabels[this.language].btn__comment);
                 if (commentBtnElm) {
                     await this.scrollToElement(commentBtnElm);
@@ -260,17 +309,24 @@ class Facebook extends Puppeteer {
                         submitBtnElm?.click();
                         await this.delay(2000, 3000);
                     } catch {
-                        const commentDialog = await this.page?.$(this.selectors.dialog__anonymous);
-                        if (commentDialog) {
-                            const textboxElm = await commentDialog.waitForSelector(this.selectors.textbox, { timeout: 15_000 });
+                        let dialogElm = await this.page?.$(this.selectors.dialog__anonymous);
+                        if (!dialogElm) {
+                            dialogElm = await this.getDialogWithAriaLabel(this.ariaLabels[this.language].dialog__videoViewer);
+                        };
+                        if (dialogElm) {
+                            const _commentBtnElm = await this.getButtonWithAriaLabel(dialogElm, this.ariaLabels[this.language].btn__comment);
+                            await this.delay();
+                            await _commentBtnElm?.click();
+                            const textboxElm = await dialogElm.waitForSelector(this.selectors.textbox, { timeout: 15_000 });
                             textboxElm?.focus();
                             await this.delay();
                             await textboxElm?.type(comment);
                             await this.delay();
-                            const submitBtnElm = await this.getButtonWithAriaLabel(commentDialog, this.ariaLabels[this.language].btn__submitComment);
+                            const submitBtnElm = await this.getButtonWithAriaLabel(dialogElm, this.ariaLabels[this.language].btn__submitComment);
                             submitBtnElm?.click();
                             await this.delay(2000, 3000);
-                            await this.closeAnonymousDialog();
+
+                            await this.closeDialog(dialogElm);
                             await this.delay();
                         };
                     };
@@ -349,6 +405,27 @@ class Facebook extends Puppeteer {
             return null;
         };
     };
+
+    async getButtonsWithAriaLabel(containerElm: ElementHandle | Page, ariaLabel: string): Promise<ElementHandle[] | []> {
+        try {
+            if (!containerElm) { return []; }
+            await containerElm.waitForSelector(this.selectors.button);
+            const buttonElms = await containerElm.$$(this.selectors.button);
+            const buttonResults = [];
+            for (let buttonElm of buttonElms) {
+                const btnName = await buttonElm.evaluate((elm: Element): string | null => elm.getAttribute("aria-label"));
+                const isDisabled = await buttonElm.evaluate((elm: Element): string | null => elm.getAttribute("aria-disabled"));
+                if (btnName && (btnName.trim().toLowerCase() === ariaLabel.trim().toLowerCase()) && !isDisabled) {
+                    buttonResults.push(buttonElm);
+                } else { continue; };
+            };
+            return buttonResults;
+        } catch (error) {
+            console.error("ERROR: ", error);
+            return [];
+        };
+    };
+
 
     async getDialogWithAriaLabel(ariaLabel: string): Promise<ElementHandle | null> {
         try {

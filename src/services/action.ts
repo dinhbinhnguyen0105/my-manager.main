@@ -4,11 +4,9 @@ import { IPCActionInterface } from "~/types/ipcs"
 import { SettingInterface } from "~/types/setting";
 import { LikeCommentType } from "~/types/bot";
 import { get as getUser } from "./user";
-import { get as getSetting } from "./setting";
-import getProxy from "~/utils/getProxy";
+import getProxy, { isValidProxy } from "~/utils/getProxy";
 import { BrowserConfigType, PuppeteerConfigType } from "~/types/puppeteer";
 import PuppeteerController from "~/puppeteer/Puppeteer";
-import { exit } from "process";
 import preparePuppeteerConfig from "~/utils/preparePuppeteerConfig";
 import likeCommentController from "./likeCommentController";
 
@@ -89,8 +87,6 @@ const openBrowser = ({ id, setting }: { id: string, setting: SettingInterface })
 
 const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComment: LikeCommentType, setting: SettingInterface }): Promise<IPCActionInterface> => {
     return new Promise(async (resolve, reject) => {
-        // console.log({ ids, likeComment, setting });
-
         while (ids.length > 0) {
             const tasks = [];
             const proxySources = setting.proxy.split(",");
@@ -99,10 +95,18 @@ const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComm
                 while (proxySources.length > 0) {
                     const proxySource = proxySources.pop();
                     if (!proxySource) { break; };
+                    console.log({ i });
                     const proxyRaw = await getProxy(proxySource.trim());
+                    console.log({ proxyRaw });
                     if (proxyRaw) {
                         proxy = proxyRaw.proxy;
                         break;
+                        // const isValid = await isValidProxy(proxyRaw.proxy);
+                        // if (isValid) { console.log(`${proxyRaw.proxy} : live`); }
+                        // else { console.log(`${proxyRaw.proxy} : dead`); };
+                        // if (isValid) {
+                        //     break;
+                        // };
                     } else { continue; };
                 };
                 if (!proxy) { continue; };
@@ -113,11 +117,6 @@ const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComm
                     tasks.push(puppeteerConfig);
                 }
             };
-
-            console.log({ taskLength: tasks.length });
-            console.log("------ tasks ---------")
-            console.log(tasks);
-
             if (tasks) {
                 await likeCommentController({
                     tasks: tasks,
@@ -125,9 +124,11 @@ const botLikeComment = ({ ids, likeComment, setting }: { ids: string[], likeComm
                     concurrency: setting.process
                 })
             }
-            break;
+
+            // break;
             // handler
-        }
+        };
+        console.log("End botLikeComment")
     })
 }
 

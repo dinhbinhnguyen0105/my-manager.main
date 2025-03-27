@@ -30,38 +30,27 @@ const isValidIpPort = (input: string): boolean => {
     return true;
 }
 
-// const getProxy = (urls: string[]): Promise<{ status: number, proxy: string }> => {
-//     return new Promise(async (resolve, reject) => {
-//         // const urlSplitted =url.split("|");
-//         for (let url of urls) {
-//             if (isValidIpPort(url)) { resolve({ status: 200, proxy: url }); };
-//             if (url.includes("https://proxyxoay.shop/")) {
-//                 const resRaw = await fetch(url.trim());
-//                 const res = await resRaw.json();
-//                 console.log(res);
-//                 if (res.status === 100) {
-//                     resolve({
-//                         status: 200,
-//                         proxy: res.proxyhttp,
-//                     });
-//                 } else if (res.status === 101) {
-//                     resolve({
-//                         status: 300,
-//                         proxy: "",
-//                     });
-//                 } else {
-//                     //
-//                 };
-//             } else {
-//                 ///
-//             };
-//         };
-//         reject({
-//             status: 500,
-//             message: "Failed to fetch proxy from server",
-//         });
-//     });
-// };
+const isValidProxy = async (proxy: string | unknown): Promise<boolean> => {
+    try {
+        if (typeof proxy !== "string") { return false; };
+        const resRaw = await fetch("https://checkproxy.vip/check_proxy.php", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                proxies: [proxy],
+                format: 'host:port:username:password',
+                type: 'http'
+            }),
+        });
+
+        const res = await resRaw.json();
+        if (res[0].status.toLowerCase().includes("live")) { return true; }
+        else { return false; };
+    } catch (error) {
+        console.error("ERROR [isValidProxy]: ", error);
+        return false;
+    }
+}
 
 const getProxy = async (url: string): Promise<{ status: number, message?: string, proxy?: string } | null> => {
     try {
@@ -80,7 +69,7 @@ const getProxy = async (url: string): Promise<{ status: number, message?: string
                         proxy: res.proxyhttp,
                     };
                 } else {
-                    console.error(res);
+                    console.error("ERROR [getProxy]: ", res);
                     return null;
                 };
             } else {
@@ -95,3 +84,4 @@ const getProxy = async (url: string): Promise<{ status: number, message?: string
 }
 
 export default getProxy;
+export { isValidProxy };

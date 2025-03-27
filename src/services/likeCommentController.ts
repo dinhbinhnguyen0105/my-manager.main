@@ -55,6 +55,8 @@ const likeCommentController = async ({
         });
     }));
 
+    console.log({ results })
+
     return results;
 };
 

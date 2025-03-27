@@ -46,7 +46,6 @@ class Puppeteer {
             executablePath: executablePath,
             ...configs.puppeteerConfig,
         };
-        console.log(this.mainConfig);
     };
 
     async initBrowser() {
